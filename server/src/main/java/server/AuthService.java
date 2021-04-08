@@ -8,4 +8,9 @@ public interface AuthService {
      * @return никнейм если есть совпадение по логину и паролю, null если нет совпадения
      * */
     String getNicknameByLoginAndPassword(String login, String password );
+
+    /**
+     * Попытка регистрации новой учетной записи
+     * */
+    boolean registration(String login, String password, String nickname);
 }
