@@ -27,10 +27,10 @@ public class Server {
             server = new ServerSocket(PORT);
             System.out.println("Server started");
 
-            while(true){
+            while (true) {
                 socket = server.accept();
                 System.out.println(socket.getLocalSocketAddress());
-                System.out.println("Client connect: "+ socket.getRemoteSocketAddress());
+                System.out.println("Client connect: " + socket.getRemoteSocketAddress());
                 new ClientHandler(this, socket);
             }
 
@@ -50,7 +50,7 @@ public class Server {
         }
     }
 
-    public void broadcastMsg(ClientHandler sender, String msg){
+    public void broadcastMsg(ClientHandler sender, String msg) {
         String message = String.format("%s : %s", sender.getNickname(), msg);
         for (ClientHandler c : clients) {
             c.sendMsg(message);
@@ -74,17 +74,57 @@ public class Server {
         sender.sendMsg("Сообщение не отправлено! " + toNickName + " не в сети");
     }
 
+    /* Вариант лектора
+    public void privateMsg(ClientHandler sender, String receiver, String msg) {
+        String message = String.format("[ %s ] to [ %s ] : %s", sender.getNickname(), receiver, msg);
 
+        for (ClientHandler c : clients) {
+            if (c.getNickname().equals(receiver)) {
+                c.sendMsg(message);
+                if (sender.equals(c)) {
+                    return;
+                }
+                sender.sendMsg(message);
+                return;
+            }
+        }
+        sender.sendMsg("not found user: " + receiver);
+    } */
 
-    public void subscribe(ClientHandler clientHandler){
+    public void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
+        broadcastClientList();
     }
 
-    public void unsubscribe(ClientHandler clientHandler){
+    public void unsubscribe(ClientHandler clientHandler) {
         clients.remove(clientHandler);
+        broadcastClientList();
     }
 
     public AuthService getAuthService() {
         return authService;
+    }
+
+    public boolean isLoginAuthenticated(String login) {
+        for (ClientHandler c : clients) {
+            if (c.getLogin().equals(login)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void broadcastClientList() {
+        StringBuilder sb = new StringBuilder("/clientlist");
+        for (ClientHandler c : clients) {
+            sb.append(" ").append(c.getNickname());
+        }
+
+        String msg = sb.toString();
+
+        for (ClientHandler c : clients) {
+            c.sendMsg(msg);
+        }
     }
 }
