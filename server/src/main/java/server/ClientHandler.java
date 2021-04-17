@@ -91,13 +91,35 @@ public class ClientHandler {
                                 String[] token = str.split("\\s+", 3);
                                 server.privateMsg(this, token[1], token[2]);
                             }
+                            // Смена Ника
+                            if (str.startsWith("/newNick")) {
+                                String[] token = str.split("\\s+", 3);
+                                if (token.length < 2) {
+                                    continue;
+                                }
+                                String newNickName = token[1];
+                                boolean b = server.getAuthService().changeNickName(getLogin(), newNickName);
+                                if (b) {
+                                    server.broadcastMsg(this, "Я сменил Ник на " + newNickName);
+                                    setNickname(newNickName);
+                                    out.writeUTF("/newNick_ok " + newNickName);
+                                    server.broadcastClientList();
+                                } else {
+                                    out.writeUTF("Никнейм занят!");
+                                }
+                            }
                         } else {
                             server.broadcastMsg(this, str);
                         }
                     }
                     //обработать SocketTimeoutException
                 } catch (SocketTimeoutException e) {
-                    System.out.println("Client timeuot " + socket.getRemoteSocketAddress());;
+                    System.out.println("Client timeuot " + socket.getRemoteSocketAddress());
+                    try {
+                        out.writeUTF("/end");
+                    } catch (IOException ioException) {
+                        ioException.printStackTrace();
+                    }
                 } catch (RuntimeException e) {
                     System.out.println(e.getMessage());
                 } catch (IOException e) {
@@ -132,5 +154,9 @@ public class ClientHandler {
 
     public String getLogin() {
         return login;
+    }
+
+    public void setNickname(String newNickName) {
+        nickname = newNickName;
     }
 }

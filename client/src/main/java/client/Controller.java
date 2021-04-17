@@ -140,6 +140,11 @@ public class Controller implements Initializable {
                                     }
                                 });
                             }
+                            // Обновление заголовка при смене Ника
+                            if (str.startsWith("/newNick_ok")) {
+                                nickname = str.split("\\s+")[1];
+                                setTitle(nickname);
+                            }
                         } else {
                             textArea.appendText(str + "\n");
                         }

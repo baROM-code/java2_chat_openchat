@@ -7,6 +7,11 @@
 .text-field{
     -fx-control-inner-background: #035ea4;
 }
+
+.ListView {
+	-fx-background-color: #035ea4;
+}
+
 .button {
     -fx-background-color: #91f103;
 }
