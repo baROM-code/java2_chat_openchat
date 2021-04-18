@@ -19,12 +19,13 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.Socket;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 public class Controller implements Initializable {
     @FXML
@@ -109,6 +110,7 @@ public class Controller implements Initializable {
                             if (str.startsWith("/auth_ok")) {
                                 nickname = str.split("\\s+")[1];
                                 setAuthenticated(true);
+                                readHistory();
                                 break;
                             }
                             if (str.startsWith("/reg_ok")) {
@@ -147,6 +149,7 @@ public class Controller implements Initializable {
                             }
                         } else {
                             textArea.appendText(str + "\n");
+                            writeHistory(str);
                         }
                     }
                 } catch (IOException e) {
@@ -245,6 +248,39 @@ public class Controller implements Initializable {
         String msg = String.format("/reg %s %s %s", login, password, nickname);
         try {
             out.writeUTF(msg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void writeHistory(String str) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("history_" + loginField.getText().trim() + ".txt", true))) {
+            writer.write(str);
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void readHistory() {
+        File file = new File("history_" + loginField.getText().trim() + ".txt");
+        if (!file.exists()) { return;}
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+            String str;
+            ArrayList<String> lines = new ArrayList<>();
+
+            while ((str = reader.readLine()) != null) {
+                lines.add(str);
+            }
+            // показываем последние 10 строк истории чата.
+            int i = 0;
+            if (lines.size() > 10) { i = lines.size() - 10; }
+            while (i < lines.size()) {
+                textArea.appendText(lines.get(i) + "\n");
+                i++;
+            }
+            lines.clear();
         } catch (IOException e) {
             e.printStackTrace();
         }

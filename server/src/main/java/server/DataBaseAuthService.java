@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class dataBaseAuthService implements AuthService{
+public class DataBaseAuthService implements AuthService{
 
     private static Connection connection;
     private static Statement stmt;
@@ -24,7 +24,7 @@ public class dataBaseAuthService implements AuthService{
 
     private List<UserData> users;
 
-    public dataBaseAuthService() {
+    public DataBaseAuthService() {
         users = new ArrayList<>();
 
         try {
