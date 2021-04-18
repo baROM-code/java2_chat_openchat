@@ -1,0 +1,23 @@
+ASD : 001
+ASD : 002
+ASD : 003
+ASD : 004
+ASD : 005
+ASD : 006
+ASD : 007
+ASD : 008
+ASD : 009
+ASD : 010
+ASD : 011
+ASD : 012
+ASD : 013
+ASD : 014
+ASD : 015
+ASD : 016
+ASD : 017
+ASD : 018
+ASD : 019
+ASD : 020
+QWEQWE : Привет!
+ASD : Го кодить
+QWEQWE : )))
