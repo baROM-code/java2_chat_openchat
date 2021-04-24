@@ -10,10 +10,13 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Server {
     private static ServerSocket server;
     private static Socket socket;
+    private static ExecutorService executorService;
 
     private static final int PORT = 8189;
     private List<ClientHandler> clients;
@@ -31,12 +34,17 @@ public class Server {
                 socket = server.accept();
                 System.out.println(socket.getLocalSocketAddress());
                 System.out.println("Client connect: " + socket.getRemoteSocketAddress());
-                new ClientHandler(this, socket);
+
+                // ExecutorService
+                // ExecutorService executorServiceexecutorService = Executors.newFixedThreadPool(10);
+                executorService = Executors.newSingleThreadExecutor();
+                new ClientHandler(this, socket, executorService);
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            executorService.shutdown();
             try {
                 socket.close();
             } catch (IOException e) {
