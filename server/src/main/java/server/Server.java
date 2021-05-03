@@ -1,19 +1,21 @@
 package server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
-import java.util.Scanner;
-import java.util.Vector;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class Server {
+    public static final Logger logger = Logger.getLogger("");
+
     private static ServerSocket server;
     private static Socket socket;
+    private static ExecutorService executorService;
 
     private static final int PORT = 8189;
     private List<ClientHandler> clients;
@@ -23,20 +25,32 @@ public class Server {
         clients = new CopyOnWriteArrayList<>();
         authService = new DataBaseAuthService();
 
+        LogManager manager = LogManager.getLogManager();
+        try {
+            manager.readConfiguration(new FileInputStream("logging.properties"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         try {
             server = new ServerSocket(PORT);
-            System.out.println("Server started");
+            logger.info("Server started");
+            // System.out.println("Server started");
 
             while (true) {
                 socket = server.accept();
-                System.out.println(socket.getLocalSocketAddress());
-                System.out.println("Client connect: " + socket.getRemoteSocketAddress());
-                new ClientHandler(this, socket);
+                logger.fine("Client connect: " + socket.getRemoteSocketAddress());
+
+                // ExecutorService
+                // ExecutorService executorServiceexecutorService = Executors.newFixedThreadPool(10);
+                executorService = Executors.newSingleThreadExecutor();
+                new ClientHandler(this, socket, executorService);
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
+            executorService.shutdown();
             try {
                 socket.close();
             } catch (IOException e) {
@@ -73,23 +87,6 @@ public class Server {
         }
         sender.sendMsg("Сообщение не отправлено! " + toNickName + " не в сети");
     }
-
-    /* Вариант лектора
-    public void privateMsg(ClientHandler sender, String receiver, String msg) {
-        String message = String.format("[ %s ] to [ %s ] : %s", sender.getNickname(), receiver, msg);
-
-        for (ClientHandler c : clients) {
-            if (c.getNickname().equals(receiver)) {
-                c.sendMsg(message);
-                if (sender.equals(c)) {
-                    return;
-                }
-                sender.sendMsg(message);
-                return;
-            }
-        }
-        sender.sendMsg("not found user: " + receiver);
-    } */
 
     public void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
