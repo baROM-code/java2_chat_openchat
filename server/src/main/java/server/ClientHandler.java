@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
 
 public class ClientHandler {
     private Server server;
@@ -22,8 +23,6 @@ public class ClientHandler {
             this.socket = socket;
             in = new DataInputStream(socket.getInputStream());
             out = new DataOutputStream(socket.getOutputStream());
-
-
 
             service.execute(() -> {
                 try {
@@ -54,7 +53,7 @@ public class ClientHandler {
                                     nickname = newNick;
                                     sendMsg("/auth_ok " + nickname);
                                     server.subscribe(this);
-                                    System.out.println("Client authenticated. nick: " + nickname +
+                                    server.logger.fine("Client authenticated. nick: " + nickname +
                                             " Address: " + socket.getRemoteSocketAddress());
                                     socket.setSoTimeout(0);
                                     break;
@@ -75,6 +74,7 @@ public class ClientHandler {
                                     .registration(token[1], token[2], token[3]);
                             if (b) {
                                 sendMsg("/reg_ok");
+                                server.logger.config("New user registred with Nickname:" + token[3]);
                             } else {
                                 sendMsg("/reg_no");
                             }
@@ -86,6 +86,8 @@ public class ClientHandler {
                         String str = in.readUTF();
 
                         if (str.startsWith("/")) {
+                            server.logger.severe("Client " + this.getNickname() + " send command: " + str);
+
                             if (str.equals("/end")) {
                                 out.writeUTF("/end");
                                 break;
@@ -113,23 +115,25 @@ public class ClientHandler {
                             }
                         } else {
                             server.broadcastMsg(this, str);
+                            server.logger.severe("Client " + this.getNickname() + " send message: " + str);
                         }
                     }
                     //обработать SocketTimeoutException
                 } catch (SocketTimeoutException e) {
-                    System.out.println("Client timeuot " + socket.getRemoteSocketAddress());
+                    server.logger.warning("Client timeuot " + socket.getRemoteSocketAddress());
                     try {
                         out.writeUTF("/end");
                     } catch (IOException ioException) {
                         ioException.printStackTrace();
                     }
                 } catch (RuntimeException e) {
+                    server.logger.log(Level.WARNING,"RuntimeException" , e);
                     System.out.println(e.getMessage());
                 } catch (IOException e) {
                     e.printStackTrace();
                 } finally {
                     server.unsubscribe(this);
-                    System.out.println("client disconnect " + socket.getRemoteSocketAddress());
+                    server.logger.fine("client disconnect " + socket.getRemoteSocketAddress());
                     try {
                         socket.close();
                     } catch (IOException e) {
